@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>101~168数字抽奖</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+        }
+        
+        .number-range {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .number-display {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #2575fc;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .draw-button {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+        
+        .draw-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .draw-button:active {
+            transform: translateY(1px);
+        }
+        
+        .draw-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .result-history {
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .result-history h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        #historyList {
+            list-style-type: none;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        #historyList li {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        #historyList li:last-child {
+            border-bottom: none;
+        }
+        
+        .history-number {
+            font-weight: bold;
+            color: #2575fc;
+        }
+        
+        .history-time {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .number-display {
+                font-size: 4rem;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>幸运数字抽奖</h1>
+        <div class="number-range">抽奖范围：101 ~ 168</div>
+        
+        <div class="number-display" id="numberDisplay">?</div>
+        
+        <button class="draw-button" id="drawButton">开始抽奖</button>
+        
+        <div class="result-history">
+            <h3>抽奖历史</h3>
+            <ul id="historyList"></ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const numberDisplay = document.getElementById('numberDisplay');
+            const drawButton = document.getElementById('drawButton');
+            const historyList = document.getElementById('historyList');
+            
+            // 生成101-168之间的随机整数 [1,3](@ref)
+            function getRandomNumber() {
+                const min = 101;
+                const max = 168;
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+            
+            // 格式化时间为 HH:MM:SS
+            function getCurrentTime() {
+                const now = new Date();
+                return now.toTimeString().split(' ')[0];
+            }
+            
+            // 添加历史记录
+            function addToHistory(number) {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <span class="history-number">${number}</span>
+                    <span class="history-time">${getCurrentTime()}</span>
+                `;
+                historyList.insertBefore(listItem, historyList.firstChild);
+                
+                // 限制历史记录数量
+                if (historyList.children.length > 10) {
+                    historyList.removeChild(historyList.lastChild);
+                }
+            }
+            
+            // 抽奖动画效果
+            function startDrawAnimation() {
+                let count = 0;
+                const maxCount = 20;
+                const interval = 100; // 毫秒
+                
+                const animation = setInterval(() => {
+                    // 显示随机数字
+                    numberDisplay.textContent = getRandomNumber();
+                    count++;
+                    
+                    // 动画结束后显示最终结果
+                    if (count >= maxCount) {
+                        clearInterval(animation);
+                        const finalNumber = getRandomNumber();
+                        numberDisplay.textContent = finalNumber;
+                        numberDisplay.classList.add('pulse');
+                        
+                        // 添加到历史记录
+                        addToHistory(finalNumber);
+                        
+                        // 重新启用按钮
+                        setTimeout(() => {
+                            drawButton.disabled = false;
+                            numberDisplay.classList.remove('pulse');
+                        }, 500);
+                    }
+                }, interval);
+            }
+            
+            // 点击抽奖按钮
+            drawButton.addEventListener('click', function() {
+                // 禁用按钮防止重复点击
+                drawButton.disabled = true;
+                
+                // 开始抽奖动画
+                startDrawAnimation();
+            });
+        });
+    </script>
+</body>
+</html>
